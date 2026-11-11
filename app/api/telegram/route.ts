@@ -86,7 +86,7 @@ export async function POST(req: Request) {
     const { data: dadosBanco, error: erroBusca } = await supabase
       .from('caju_estado_casal')
       .select('dados')
-      .eq('id', 1)
+      .eq('id', 'casal_principal')
       .single();
 
     if (erroBusca && erroBusca.code !== 'PGRST116') throw new Error('Falha ao conectar.');
@@ -101,7 +101,7 @@ export async function POST(req: Request) {
 
     const { error: erroUpdate } = await supabase
       .from('caju_estado_casal')
-      .upsert({ id: 1, dados: dadosAtuais });
+      .upsert({ id: 'casal_principal', dados: dadosAtuais });
 
     if (erroUpdate) throw new Error('Falha ao salvar.');
 
