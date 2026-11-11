@@ -1271,7 +1271,7 @@ export default function Home() {
                         <div key={t.id} className="py-3 text-sm">
                           {transacaoEditando?.id === t.id ? (
                             <div className="bg-slate-950 border-2 border-emerald-500/70 p-3.5 rounded-xl space-y-3">
-                                {/* Formulário Inline de Edição Rápida */}
+                                {/* Formulário Inline Completo */}
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
                                   <div>
                                     <label className="text-slate-400 block mb-1">Valor (R$)</label>
@@ -1284,6 +1284,25 @@ export default function Home() {
                                   <div>
                                     <label className="text-slate-400 block mb-1">Data</label>
                                     <input type="date" value={editData} onChange={e => setEditData(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-white" />
+                                  </div>
+                                  <div className="sm:col-span-2">
+                                    <label className="text-slate-400 block mb-1">Categoria</label>
+                                    <select value={editCategoria} onChange={e => setEditCategoria(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-white cursor-pointer">
+                                      {CATEGORIAS_SISTEMA.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="text-slate-400 block mb-1">Natureza Contábil</label>
+                                    <select value={editNatureza} onChange={e => setEditNatureza(e.target.value as NaturezaContabil)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-white cursor-pointer">
+                                      <option value="compra_gasto">Despesa / Compra Real</option>
+                                      <option value="receita_entrada">Receita / Entrada Real</option>
+                                      <option value="transferencia_propria">Transferência Própria</option>
+                                      <option value="transferencia_casal">Transferência Casal</option>
+                                      <option value="movimentacao_investimento">Investimento</option>
+                                      <option value="pagamento_fatura">Pagamento Fatura</option>
+                                      <option value="divida_cartao">Fatura / Crédito</option>
+                                      <option value="estorno_reembolso">Estorno</option>
+                                    </select>
                                   </div>
                                 </div>
                                 <div className="flex flex-col sm:flex-row justify-end gap-2 pt-1">
