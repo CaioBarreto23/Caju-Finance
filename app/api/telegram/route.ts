@@ -1,5 +1,6 @@
 // app/api/telegram/route.ts
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL || '';
@@ -110,7 +111,7 @@ export async function POST(req: Request) {
     const formatado = (valorCentavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     
     await enviarMensagemTelegram(chatId, `${tipoMsg} de *${nomeCapitalizado}* registrada:\n*${descricao}* no valor de *${formatado}*`);
-
+    revalidatePath('/');
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
