@@ -18,6 +18,37 @@ function getSupabase() {
   });
 }
 
+// Inteligência para descobrir a categoria pela descrição digitada no Telegram
+function detectarCategoria(descricao: string, isEntrada: boolean): string {
+  if (isEntrada) return 'Rendimentos / Salário';
+
+  const d = descricao.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  if (/(uber|99|taxi|onibus|metro|gasolina|combustivel|estacionamento|pedagio)/.test(d)) {
+    return 'Transporte / Uber';
+  }
+  if (/(almoco|jantar|lanche|salgado|energetico|chocolate|acai|ifood|restaurante|padaria|cafe|pizza|hamburguer|bar|cerveja|chopp|sorvete|doce)/.test(d)) {
+    return 'Alimentação';
+  }
+  if (/(mercado|supermercado|feira|acougue|hortifruti|atacadao|assai|carrefour)/.test(d)) {
+    return 'Mercado';
+  }
+  if (/(presente|roupa|shopping|cinema|ingresso|jogo|brawl|lazer|passeio|viagem|hotel|airbnb)/.test(d)) {
+    return 'Lazer & Compras';
+  }
+  if (/(farmacia|remedio|medico|consulta|exame|dentista|academia|suplemento|saude)/.test(d)) {
+    return 'Saúde & Farmácia';
+  }
+  if (/(luz|agua|internet|aluguel|condominio|gas|celular| Vivo|claro|tim)/.test(d)) {
+    return 'Moradia & Contas';
+  }
+  if (/(netflix|spotify|crunchyroll|youtube|prime|assinatura|icloud|google)/.test(d)) {
+    return 'Assinaturas & Serviços Digitais';
+  }
+
+  return 'Outros';
+}
+
 async function enviarMensagemTelegram(chatId: string | number, texto: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) return;
@@ -74,9 +105,10 @@ export async function POST(req: Request) {
     const descricao = match[1].trim();
     const valorString = match[2].replace(',', '.');
     const valorCentavos = Math.round(parseFloat(valorString) * 100);
-
-    // Data no fuso horário de Brasília
     const dataBrasil = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    // Detecta a categoria automaticamente!
+    const categoriaDetectada = detectarCategoria(descricao, isEntrada);
 
     const novaTransacao = {
       id: `tg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -85,7 +117,7 @@ export async function POST(req: Request) {
       valorCentavos: valorCentavos,
       natureza: isEntrada ? 'receita_entrada' : 'compra_gasto',
       sinal: isEntrada ? 'entrada' : 'saida',
-      categoria: isEntrada ? 'Rendimentos / Salário' : 'Outros',
+      categoria: categoriaDetectada,
       banco: 'Telegram',
       dono: donoDaMensagem,
       statusConciliacao: 'nao_aplicavel',
@@ -94,7 +126,6 @@ export async function POST(req: Request) {
 
     const supabase = getSupabase();
 
-    // Busca o pacote completo de dados do casal_principal
     const { data: dadosBanco, error: erroBusca } = await supabase
       .from('caju_estado_casal')
       .select('dados')
@@ -114,7 +145,6 @@ export async function POST(req: Request) {
       dadosAtuais.transacoes = [];
     }
 
-    // Adiciona a nova transação mantendo TODAS as outras configurações (senhas, lotes, investimentos) intactas
     dadosAtuais.transacoes = [novaTransacao, ...dadosAtuais.transacoes];
 
     const { error: erroUpdate } = await supabase
@@ -130,7 +160,10 @@ export async function POST(req: Request) {
     const nomeCapitalizado = donoDaMensagem.charAt(0).toUpperCase() + donoDaMensagem.slice(1);
     const formatado = (valorCentavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     
-    await enviarMensagemTelegram(chatId, `${tipoMsg} de *${nomeCapitalizado}* registrada:\n*${descricao}* no valor de *${formatado}*`);
+    await enviarMensagemTelegram(
+      chatId, 
+      `${tipoMsg} de *${nomeCapitalizado}* registrada:\n*${descricao}* — *${formatado}*\n🏷️ Categoria: _${categoriaDetectada}_`
+    );
 
     try { revalidatePath('/'); } catch {}
 
