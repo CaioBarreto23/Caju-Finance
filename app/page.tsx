@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   Wallet, PieChart, TrendingUp, PlusCircle, CreditCard, Lock, KeyRound,
   Trash2, Building2, Citrus, ArrowLeftRight, FolderKanban, Edit3,
-  CheckCircle2, Download, Upload, Search, Eye, Undo2, Link2, Archive
+  CheckCircle2, Download, Upload, Search, Eye, Undo2, Link2, Archive, RefreshCw
 } from 'lucide-react';
 import {
   Transacao, LoteImportacao, LogAuditoria, PerfilUsuario, NaturezaContabil,
@@ -74,6 +74,7 @@ export default function Home() {
   const [mostrandoConfigSenha, setMostrandoConfigSenha] = useState(false);
   const [senhaAntiga, setSenhaAntiga] = useState('');
   const [senhaNova, setSenhaNova] = useState('');
+  const [sincronizando, setSincronizando] = useState(false);
 
   // Navegação Principal
   const [abaAtiva, setAbaAtiva] = useState<'visao' | 'importar' | 'lotes' | 'conciliacao' | 'investimentos' | 'dividas' | 'caju'>('visao');
@@ -181,24 +182,28 @@ export default function Home() {
     if (parsed.senhaCaio) setSenhaCaio(parsed.senhaCaio);
   }
 
+  // FUNÇÃO DE BUSCA NA NUVEM (SUPABASE SYNC SEM CACHE)
+  async function carregarDaNuvem() {
+    setSincronizando(true);
+    try {
+      const res = await fetch(`/api/sync?t=${Date.now()}`, { cache: 'no-store' });
+      const json = await res.json();
+      if (json.ok && json.dados && Object.keys(json.dados).length > 0) {
+        localStorage.setItem(STORAGE_KEY_UNIFICADA, JSON.stringify(json.dados));
+        aplicarDados(json.dados); // Atualiza a tela com os dados mais recentes do Supabase
+      }
+    } catch (e) {
+      console.warn('Modo offline: mantendo dados locais.', e);
+    } finally {
+      setSincronizando(false);
+    }
+  }
+
   // CARREGAMENTO INICIAL (LOCAL STORAGE + SUPABASE SYNC)
   useEffect(() => {
     const salvoUnificado = localStorage.getItem(STORAGE_KEY_UNIFICADA);
     if (salvoUnificado) {
       try { aplicarDados(JSON.parse(salvoUnificado)); } catch {}
-    }
-
-    async function carregarDaNuvem() {
-      try {
-        const res = await fetch('/api/sync', { cache: 'no-store' });
-        const json = await res.json();
-        if (json.ok && json.dados && Object.keys(json.dados).length > 0) {
-          localStorage.setItem(STORAGE_KEY_UNIFICADA, JSON.stringify(json.dados));
-          aplicarDados(json.dados); // Atualiza a tela com os dados mais recentes do Supabase
-        }
-      } catch (e) {
-        console.warn('Modo offline: mantendo dados locais.', e);
-      }
     }
     carregarDaNuvem();
   }, []);
@@ -978,6 +983,9 @@ export default function Home() {
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end">
             <div className="flex gap-2">
+                <button onClick={carregarDaNuvem} className="bg-slate-800 hover:bg-slate-700 text-emerald-400 px-2.5 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs flex items-center gap-1 border border-slate-700 shrink-0" title="Sincronizar com o Supabase">
+                <RefreshCw size={13} className={sincronizando ? 'animate-spin' : ''} /> Sincronizar
+                </button>
                 <button onClick={exportarBackupJSON} className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs flex items-center gap-1 border border-slate-700 shrink-0">
                 <Download size={13} /> Backup
                 </button>
@@ -1124,6 +1132,7 @@ export default function Home() {
                   onChange={setBancoFiltro}
                   opcoes={[
                     { valor: 'TODOS', label: 'Todos os Bancos' },
+                    { valor: 'Telegram', label: '📱 Telegram' },
                     { valor: 'Itaú', label: 'Itaú' },
                     { valor: 'Nubank', label: 'Nubank' },
                     { valor: 'Mercado Pago', label: 'Mercado Pago' },
