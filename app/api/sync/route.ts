@@ -1,62 +1,58 @@
+// app/api/sync/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-function getSupabase() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
-  // Imprime no terminal do VS Code para sabermos se ele está lendo o arquivo
-  console.log("-> Testando leitura do .env.local:");
-  console.log("URL carregada:", url ? "Sim" : "Não");
-  console.log("Chave carregada:", key ? "Sim" : "Não");
-
-  if (!url || !key) throw new Error('Variáveis do Supabase ausentes ou não lidas pelo Next.js.');
-  
-  return createClient(url, key, { auth: { persistSession: false } });
-}
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function GET() {
   try {
-    const supabase = getSupabase();
     const { data, error } = await supabase
       .from('caju_estado_casal')
       .select('dados')
-      .eq('id', 'casal_principal')
+      .eq('id', 'casal_principal') // Lendo da mesma "gaveta" do Telegram
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      console.error("Erro do Supabase no GET:", error);
-      return NextResponse.json({ ok: false }, { status: 500 });
+      throw error;
     }
-    
-    return NextResponse.json({ ok: true, dados: data?.dados || null });
-  } catch (err) {
-    console.error("Erro fatal no GET:", err);
-    return NextResponse.json({ ok: false }, { status: 500 });
+
+    let dados = {};
+    if (data && data.dados) {
+      dados = typeof data.dados === 'string' ? JSON.parse(data.dados) : data.dados;
+    }
+
+    // Retorna os dados forçando a Vercel a limpar o cache
+    return NextResponse.json(
+      { ok: true, dados },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
+  } catch (error) {
+    console.error('Erro no GET /api/sync:', error);
+    return NextResponse.json({ ok: false, error: 'Erro ao buscar dados' }, { status: 500 });
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const body = await request.json();
-    const dados = body?.dados;
-    if (!dados) return NextResponse.json({ ok: false, erro: 'Sem dados' }, { status: 400 });
+    const { dados } = await req.json();
 
-    const supabase = getSupabase();
     const { error } = await supabase
       .from('caju_estado_casal')
-      .upsert(
-        { id: 'casal_principal', dados, updated_at: new Date().toISOString() },
-        { onConflict: 'id' }
-      );
+      .upsert({ id: 'casal_principal', dados }); // Salvando na mesma "gaveta" do Telegram
 
-    if (error) {
-      console.error("Erro do Supabase no POST:", error);
-      return NextResponse.json({ ok: false }, { status: 500 });
-    }
+    if (error) throw error;
+
     return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("Erro fatal no POST:", err);
-    return NextResponse.json({ ok: false }, { status: 500 });
+  } catch (error) {
+    console.error('Erro no POST /api/sync:', error);
+    return NextResponse.json({ ok: false, error: 'Erro ao salvar dados' }, { status: 500 });
   }
 }
