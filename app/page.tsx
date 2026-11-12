@@ -1612,14 +1612,212 @@ export default function Home() {
               </div>
             )}
             
-            {abaAtiva === 'dividas' && (
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
-                <h2 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-                  <CreditCard className="text-rose-400" size={20} /> Faturas de Cartão
-                </h2>
-                <p className="text-xs text-slate-400">Integração com cartões de crédito em desenvolvimento.</p>
-              </div>
-            )}
+            {abaAtiva === 'dividas' && (() => {
+              const comprasCartao = transacoes
+                .filter(t => t.dono === perfilAtivo && t.natureza === 'divida_cartao')
+                .filter(t => (mesFiltro === 'TODOS' ? true : t.data.startsWith(mesFiltro)))
+                .filter(t => (bancoFiltro === 'TODOS' ? true : t.banco === bancoFiltro))
+                .sort((a, b) => b.data.localeCompare(a.data));
+
+              const pagamentosFatura = transacoes
+                .filter(t => t.dono === perfilAtivo && t.natureza === 'pagamento_fatura')
+                .filter(t => (mesFiltro === 'TODOS' ? true : t.data.startsWith(mesFiltro)))
+                .filter(t => (bancoFiltro === 'TODOS' ? true : t.banco === bancoFiltro));
+
+              // Agrupa as faturas por Banco e Mês (Ex: Nubank - 2026-11)
+              const mapaFaturas: {
+                [chave: string]: {
+                  chave: string;
+                  banco: string;
+                  mes: string;
+                  itens: Transacao[];
+                  totalCentavos: number;
+                  pagoCentavos: number;
+                };
+              } = {};
+
+              comprasCartao.forEach(t => {
+                const mes = t.data.substring(0, 7);
+                const chave = `${t.banco}_${mes}`;
+                if (!mapaFaturas[chave]) {
+                  mapaFaturas[chave] = { chave, banco: t.banco, mes, itens: [], totalCentavos: 0, pagoCentavos: 0 };
+                }
+                mapaFaturas[chave].itens.push(t);
+                mapaFaturas[chave].totalCentavos += t.valorCentavos;
+              });
+
+              pagamentosFatura.forEach(p => {
+                const mes = p.data.substring(0, 7);
+                const chave = `${p.banco}_${mes}`;
+                if (mapaFaturas[chave]) {
+                  mapaFaturas[chave].pagoCentavos += p.valorCentavos;
+                }
+              });
+
+              const listaFaturas = Object.values(mapaFaturas).sort((a, b) => b.mes.localeCompare(a.mes));
+              const totalGeralCartao = listaFaturas.reduce((acc, f) => acc + f.totalCentavos, 0);
+              const totalGeralPago = listaFaturas.reduce((acc, f) => acc + Math.min(f.totalCentavos, f.pagoCentavos), 0);
+              const totalEmAberto = Math.max(0, totalGeralCartao - totalGeralPago);
+
+              return (
+                <div className="space-y-6">
+                  {/* CARDS DE RESUMO DAS FATURAS */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                      <span className="text-xs text-slate-400">Total Lançado no Crédito</span>
+                      <p className="text-xl font-bold text-rose-400 mt-1">{formatarBRL(totalGeralCartao)}</p>
+                    </div>
+                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                      <span className="text-xs text-slate-400">Faturas Pagas / Abatidas</span>
+                      <p className="text-xl font-bold text-emerald-400 mt-1">{formatarBRL(totalGeralPago)}</p>
+                    </div>
+                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                      <span className="text-xs text-slate-400">Saldo de Faturas em Aberto</span>
+                      <p className="text-xl font-bold text-amber-400 mt-1">{formatarBRL(totalEmAberto)}</p>
+                    </div>
+                  </div>
+
+                  {/* CABEÇALHO E ATALHO DE IMPORTAÇÃO */}
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                      <div>
+                        <h2 className="text-base font-bold text-white flex items-center gap-2">
+                          <CreditCard className="text-rose-400" size={20} /> Gestão de Faturas de Cartão
+                        </h2>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Compras classificadas como crédito são agrupadas por banco e mês de competência.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setTipoImportacao('cartao');
+                          setAbaAtiva('importar');
+                        }}
+                        className="bg-rose-500 hover:bg-rose-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shrink-0"
+                      >
+                        + Importar Fatura
+                      </button>
+                    </div>
+
+                    {listaFaturas.length === 0 ? (
+                      <div className="text-center py-8 space-y-2">
+                        <p className="text-sm text-slate-400">Nenhuma despesa de cartão de crédito encontrada para {perfilAtivo}.</p>
+                        <p className="text-xs text-slate-500">
+                          Importe um extrato no modo &quot;Cartão&quot; ou edite a Natureza Contábil de um gasto para &quot;Fatura / Crédito&quot;.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {listaFaturas.map(fatura => {
+                          const saldoRestante = Math.max(0, fatura.totalCentavos - fatura.pagoCentavos);
+                          const quitada = saldoRestante === 0;
+
+                          return (
+                            <div key={fatura.chave} className={`bg-slate-950 border rounded-2xl p-4 space-y-4 transition-all ${quitada ? 'border-emerald-500/30' : 'border-rose-500/30'}`}>
+                              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-800 pb-3">
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-bold text-sm text-white">Cartão {fatura.banco}</span>
+                                    <span className="text-xs text-slate-400">• Competência {fatura.mes.split('-').reverse().join('/')}</span>
+                                    {quitada ? (
+                                      <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase">
+                                        ✓ Fatura Paga
+                                      </span>
+                                    ) : (
+                                      <span className="bg-rose-500/10 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase">
+                                        Fatura Aberta
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-slate-400 mt-1">
+                                    {fatura.itens.length} {fatura.itens.length === 1 ? 'compra registrada' : 'compras registradas'}
+                                  </p>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                  <div className="text-left sm:text-right">
+                                    <span className="text-[11px] text-slate-400 block">Total da Fatura</span>
+                                    <span className="text-base font-bold text-rose-400">{formatarBRL(fatura.totalCentavos)}</span>
+                                  </div>
+
+                                  {!quitada && (
+                                    <button
+                                      onClick={() =>
+                                        setModalConfirmacao({
+                                          aberto: true,
+                                          titulo: 'Dar Baixa na Fatura',
+                                          mensagem: `Deseja registrar o pagamento da fatura do cartão ${fatura.banco} (${fatura.mes.split('-').reverse().join('/')}) no valor de ${formatarBRL(saldoRestante)}?`,
+                                          tipo: 'confirmacao',
+                                          onConfirm: () => {
+                                            const novoPagamento = {
+                                              id: `pag_fat_${Date.now()}`,
+                                              data: `${fatura.mes}-28`,
+                                              descricao: `Pagamento Fatura Cartão ${fatura.banco}`,
+                                              valorCentavos: saldoRestante,
+                                              natureza: 'pagamento_fatura' as NaturezaContabil,
+                                              sinal: 'saida' as const,
+                                              categoria: 'Outros',
+                                              banco: fatura.banco,
+                                              dono: perfilAtivo,
+                                              statusConciliacao: 'fatura_conciliada' as StatusConciliacao,
+                                              loteId: 'fatura_baixa'
+                                            } as Transacao;
+
+                                            const logs = registrarLog('Pagamento de Fatura', `Baixa na fatura ${fatura.banco} (${fatura.mes}) de ${formatarBRL(saldoRestante)}`);
+                                            persistirSistema([novoPagamento, ...transacoes], lotes, categoriasInv, movimentacoesInv, regraInvCasal, idsIgnoradosRegra, logs);
+                                          }
+                                        })
+                                      }
+                                      className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-2 rounded-xl text-xs font-bold transition"
+                                    >
+                                      ✓ Pagar Fatura
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* LISTA DE COMPRAS DA FATURA */}
+                              <div className="divide-y divide-slate-800/70 text-xs max-h-60 overflow-y-auto pr-1">
+                                {fatura.itens.map(item => (
+                                  <div key={item.id} className="py-2.5 flex justify-between items-center gap-2">
+                                    <div>
+                                      <p className="font-medium text-slate-200">{item.descricao}</p>
+                                      <p className="text-[11px] text-slate-400">
+                                        {item.data.split('-').reverse().join('/')} • {item.categoria}
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-bold text-rose-400">- {formatarBRL(item.valorCentavos)}</span>
+                                      <button
+                                        onClick={() => {
+                                          abrirModalEdicao(item);
+                                          setAbaAtiva('visao');
+                                        }}
+                                        className="text-slate-400 hover:text-amber-400 p-1"
+                                        title="Editar no Painel"
+                                      >
+                                        <Edit3 size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => excluirTransacaoUnica(item)}
+                                        className="text-slate-500 hover:text-rose-400 p-1"
+                                        title="Excluir compra"
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </>
         )}
 
