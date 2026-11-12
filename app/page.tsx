@@ -1052,60 +1052,60 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* MENU DE ABAS ROLÁVEL EM MOBILE */}
-            <div className="flex overflow-x-auto snap-x hide-scrollbar gap-2 bg-slate-900 p-1.5 rounded-2xl border border-slate-800 w-full">
+            {/* MENU DE ABAS ROLÁVEL EM MOBILE E DISTRIBUÍDO NO DESKTOP */}
+            <div className="flex overflow-x-auto snap-x hide-scrollbar gap-2 bg-slate-900 p-1.5 rounded-2xl border border-slate-800 w-full justify-between">
               <button
                 onClick={() => setAbaAtiva('visao')}
-                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 sm:flex-none ${
-                  abaAtiva === 'visao' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400'
+                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 ${
+                  abaAtiva === 'visao' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <PieChart size={16} className="sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Painel</span>
               </button>
               <button
                 onClick={() => setAbaAtiva('importar')}
-                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 sm:flex-none ${
-                  abaAtiva === 'importar' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400'
+                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 ${
+                  abaAtiva === 'importar' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <PlusCircle size={16} className="sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Importar</span>
               </button>
               <button
                 onClick={() => setAbaAtiva('lotes')}
-                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 sm:flex-none ${
-                  abaAtiva === 'lotes' ? 'bg-slate-800 text-blue-400 border border-slate-700' : 'text-slate-400'
+                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 ${
+                  abaAtiva === 'lotes' ? 'bg-slate-800 text-blue-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <FolderKanban size={16} className="sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Extratos ({lotes.filter(l => l.dono === perfilAtivo).length})</span>
               </button>
               <button
                 onClick={() => setAbaAtiva('conciliacao')}
-                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 sm:flex-none ${
-                  abaAtiva === 'conciliacao' ? 'bg-slate-800 text-purple-400 border border-slate-700' : 'text-slate-400'
+                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 ${
+                  abaAtiva === 'conciliacao' ? 'bg-slate-800 text-purple-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <ArrowLeftRight size={16} className="sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Conciliação</span>
               </button>
               <button
                 onClick={() => setAbaAtiva('investimentos')}
-                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 sm:flex-none ${
-                  abaAtiva === 'investimentos' ? 'bg-slate-800 text-emerald-300 border border-slate-700' : 'text-slate-400'
+                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 ${
+                  abaAtiva === 'investimentos' ? 'bg-slate-800 text-emerald-300 border border-slate-700' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <TrendingUp size={16} className="sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Investimentos</span>
               </button>
               <button
                 onClick={() => setAbaAtiva('caju')}
-                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 sm:flex-none ${
-                  abaAtiva === 'caju' ? 'bg-slate-800 text-amber-400 border border-slate-700' : 'text-slate-400'
+                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 ${
+                  abaAtiva === 'caju' ? 'bg-slate-800 text-amber-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <Citrus size={16} className="sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Caju 🥭</span>
               </button>
               <button
                 onClick={() => setAbaAtiva('dividas')}
-                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 sm:flex-none ${
-                  abaAtiva === 'dividas' ? 'bg-slate-800 text-rose-400 border border-slate-700' : 'text-slate-400'
+                className={`py-2 px-3 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition whitespace-nowrap shrink-0 snap-start flex-1 ${
+                  abaAtiva === 'dividas' ? 'bg-slate-800 text-rose-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <CreditCard size={16} className="sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Faturas</span>
