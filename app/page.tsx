@@ -1585,7 +1585,16 @@ export default function Home() {
                           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
                             <span className="font-bold text-blue-400 text-sm text-left sm:text-right">↔ {formatarBRL(t.valorCentavos)}</span>
                             {t.statusConciliacao === 'aguardando_correspondencia' && (
-                              <button className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-3 py-2 rounded-lg transition-colors border border-amber-500/20 font-medium">
+                              <button 
+                                onClick={() => setModalConfirmacao({
+                                  aberto: true,
+                                  titulo: 'Busca Automática Ativada',
+                                  mensagem: `O sistema está monitorando as contas aguardando o registro de entrada no valor de ${formatarBRL(t.valorCentavos)}.\n\nAssim que ${t.dono === 'caio' ? 'a Juliana' : 'o Caio'} importar o extrato com esse recebimento ou registrá-lo via Telegram, a conciliação será feita automaticamente!`,
+                                  tipo: 'aviso',
+                                  onConfirm: null
+                                })}
+                                className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-3 py-2 rounded-lg transition-colors border border-amber-500/20 font-medium"
+                              >
                                 Buscar Recebimento
                               </button>
                             )}
