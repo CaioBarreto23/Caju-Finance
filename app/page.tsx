@@ -1551,9 +1551,66 @@ export default function Home() {
             )}
             
             {/* CONCILIAÇÃO & DIVIDAS */}
-            {abaAtiva === 'conciliacao' && (<div className="bg-slate-900 p-5 rounded-2xl"><h2 className="font-bold text-white mb-4">Conciliação</h2><p className="text-xs text-slate-400">Verifique os pares automáticos gerados pelo sistema.</p></div>)}
-            {abaAtiva === 'dividas' && (<div className="bg-slate-900 p-5 rounded-2xl"><h2 className="font-bold text-white mb-4">Faturas</h2><p className="text-xs text-slate-400">Suas despesas de crédito aparecerão aqui.</p></div>)}
-
+            {abaAtiva === 'conciliacao' && (
+              <div className="space-y-6">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+                  <h2 className="text-base font-bold text-white flex items-center gap-2">
+                    <ArrowLeftRight className="text-purple-400" size={20} /> Conciliação Inteligente
+                  </h2>
+                  <p className="text-xs text-slate-400 mb-4">
+                    Verifique as transferências entre as contas do casal. O sistema tenta encontrar automaticamente a entrada correspondente.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {transacoes.filter(t => t.natureza === 'transferencia_casal').length === 0 ? (
+                      <p className="text-sm text-slate-500 text-center py-6">Nenhuma transferência do casal encontrada nos lançamentos.</p>
+                    ) : (
+                      transacoes.filter(t => t.natureza === 'transferencia_casal').map(t => (
+                        <div key={t.id} className={`bg-slate-950 border p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-3 text-xs transition-all ${t.statusConciliacao === 'aguardando_correspondencia' ? 'border-amber-500/30' : 'border-slate-800'}`}>
+                          <div>
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="font-bold text-sm text-white">{t.descricao}</span>
+                              {t.statusConciliacao === 'aguardando_correspondencia' ? (
+                                <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">Aguardando Par</span>
+                              ) : (
+                                <span className="bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">🔗 Conciliada</span>
+                              )}
+                            </div>
+                            <p className="text-slate-400 flex items-center gap-1.5 flex-wrap">
+                              <span>{t.data.split('-').reverse().join('/')}</span> • 
+                              <span>Enviado por: <span className="text-slate-200 capitalize">{t.dono}</span></span> • 
+                              <span className="bg-slate-800 px-1.5 py-0.5 rounded text-[10px] text-slate-300">{t.banco}</span>
+                            </p>
+                          </div>
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
+                            <span className="font-bold text-blue-400 text-sm text-left sm:text-right">↔ {formatarBRL(t.valorCentavos)}</span>
+                            {t.statusConciliacao === 'aguardando_correspondencia' && (
+                              <button className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-3 py-2 rounded-lg transition-colors border border-amber-500/20 font-medium">
+                                Buscar Recebimento
+                              </button>
+                            )}
+                            {t.statusConciliacao === 'confirmada' && (
+                              <button onClick={() => desfazerConciliacao(t)} className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3 py-2 rounded-lg transition-colors border border-rose-500/20 font-medium">
+                                Desfazer
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {abaAtiva === 'dividas' && (
+              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                <h2 className="text-base font-bold text-white mb-2 flex items-center gap-2">
+                  <CreditCard className="text-rose-400" size={20} /> Faturas de Cartão
+                </h2>
+                <p className="text-xs text-slate-400">Integração com cartões de crédito em desenvolvimento.</p>
+              </div>
+            )}
           </>
         )}
 
