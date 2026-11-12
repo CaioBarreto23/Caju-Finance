@@ -1,0 +1,37 @@
+{
+  "transacoes": [
+    { "id": "t1", "data": "2026-11-05", "descricao": "Salário Caio", "valorCentavos": 650000, "natureza": "receita_entrada", "sinal": "entrada", "categoria": "Rendimentos / Salário", "banco": "Itaú", "dono": "caio", "statusConciliacao": "nao_aplicavel", "loteId": "lote1" },
+    { "id": "t2", "data": "2026-11-06", "descricao": "Mercado Assaí", "valorCentavos": 85040, "natureza": "compra_gasto", "sinal": "saida", "categoria": "Mercado", "banco": "Itaú", "dono": "caio", "statusConciliacao": "nao_aplicavel", "loteId": "lote1" },
+    { "id": "t3", "data": "2026-11-07", "descricao": "Netflix Premium", "valorCentavos": 5990, "natureza": "divida_cartao", "sinal": "saida", "categoria": "Assinaturas & Serviços Digitais", "banco": "Itaú", "dono": "caio", "statusConciliacao": "nao_aplicavel", "loteId": "lote1" },
+    { "id": "t4", "data": "2026-11-08", "descricao": "Pix para Juliana", "valorCentavos": 150000, "natureza": "transferencia_casal", "sinal": "saida", "categoria": "Outros", "banco": "Itaú", "dono": "caio", "statusConciliacao": "aguardando_correspondencia", "loteId": "lote1" },
+    { "id": "t5", "data": "2026-11-10", "descricao": "iFood Hamburgueria", "valorCentavos": 4590, "natureza": "divida_cartao", "sinal": "saida", "categoria": "Alimentação & Padaria", "banco": "Itaú", "dono": "caio", "statusConciliacao": "nao_aplicavel", "loteId": "lote1" },
+    { "id": "t6", "data": "2026-11-10", "descricao": "iFood Hamburgueria", "valorCentavos": 4590, "natureza": "divida_cartao", "sinal": "saida", "categoria": "Alimentação & Padaria", "banco": "Itaú", "dono": "caio", "statusConciliacao": "nao_aplicavel", "loteId": "lote1" },
+    { "id": "t10", "data": "2026-11-11", "descricao": "Posto Shell Gasolina", "valorCentavos": 24000, "natureza": "divida_cartao", "sinal": "saida", "categoria": "Transporte & Combustível", "banco": "Itaú", "dono": "caio", "statusConciliacao": "nao_aplicavel", "loteId": "lote1" },
+    { "id": "t7", "data": "2026-11-05", "descricao": "Salário Ju", "valorCentavos": 520000, "natureza": "receita_entrada", "sinal": "entrada", "categoria": "Rendimentos / Salário", "banco": "Nubank", "dono": "juliana", "statusConciliacao": "nao_aplicavel", "loteId": "lote2" },
+    { "id": "t8", "data": "2026-11-08", "descricao": "Uber Viagem", "valorCentavos": 3250, "natureza": "divida_cartao", "sinal": "saida", "categoria": "Transporte & Combustível", "banco": "Nubank", "dono": "juliana", "statusConciliacao": "nao_aplicavel", "loteId": "lote2" },
+    { "id": "t9", "data": "2026-11-11", "descricao": "Farmácia Drogasil", "valorCentavos": 11500, "natureza": "divida_cartao", "sinal": "saida", "categoria": "Saúde & Farmácia", "banco": "Nubank", "dono": "juliana", "statusConciliacao": "nao_aplicavel", "loteId": "lote2" }
+  ],
+  "lotes": [
+    { "id": "lote1", "nome": "Extrato Itaú (Novembro/2026)", "banco": "Itaú", "dono": "caio", "tipoFonte": "conta", "dataHoraImportacao": "2026-11-12T10:00:00.000Z", "periodoInicio": "2026-11-01", "periodoFim": "2026-11-30", "qtdTransacoes": 7, "status": "ativo" },
+    { "id": "lote2", "nome": "Extrato Nubank (Novembro/2026)", "banco": "Nubank", "dono": "juliana", "tipoFonte": "conta", "dataHoraImportacao": "2026-11-12T10:05:00.000Z", "periodoInicio": "2026-11-01", "periodoFim": "2026-11-30", "qtdTransacoes": 3, "status": "ativo" }
+  ],
+  "categoriasInv": [
+    { "id": "cat_inv_reserva", "nome": "Reserva de Emergência", "status": "ativa", "criadaEm": "2026-01-01" },
+    { "id": "cat_inv_acoes", "nome": "Ações B3 & Dividendos", "status": "ativa", "criadaEm": "2026-01-01" },
+    { "id": "cat_inv_viagem", "nome": "Viagem Japão 2027", "status": "ativa", "criadaEm": "2026-05-15" }
+  ],
+  "movimentacoesInv": [
+    { "id": "m1", "categoriaId": "cat_inv_reserva", "data": "2026-10-05", "valorCentavos": 500000, "tipo": "aplicacao", "origem": "Aporte Inicial", "responsavel": "casal", "destinoDetalhe": "CDB Itaú 100% CDI", "descricao": "Fundo garantidor do casal", "statusConfirmacao": "confirmado", "editadoManualmente": true },
+    { "id": "m2", "categoriaId": "cat_inv_acoes", "data": "2026-11-01", "valorCentavos": 150000, "tipo": "aplicacao", "origem": "Aporte Caio", "responsavel": "caio", "destinoDetalhe": "Corretora Rico", "descricao": "Compra de WEGE3 e ITUB4", "statusConfirmacao": "confirmado", "editadoManualmente": true },
+    { "id": "m3", "categoriaId": "cat_inv_viagem", "data": "2026-11-10", "valorCentavos": 80000, "tipo": "aplicacao", "origem": "Aporte Juliana", "responsavel": "juliana", "destinoDetalhe": "Caixinha Nubank", "descricao": "Poupando para as passagens", "statusConfirmacao": "confirmado", "editadoManualmente": true }
+  ],
+  "regraInvCasal": { "ativa": true, "valorPadraoCentavos": 30000 },
+  "assinaturas": [
+    { "id": "a1", "nome": "Netflix Premium", "valorCentavos": 5990, "historicoValores": [{"data": "2026-11-07", "valorCentavos": 5990}], "frequencia": "mensal", "proximaCobranca": "2026-12-07", "categoria": "Assinaturas & Serviços Digitais", "dono": "caio", "status": "ativa", "observacoes": "Plano 4K", "transacoesVinculadasIds": ["t3"] },
+    { "id": "a2", "nome": "Spotify Duo", "valorCentavos": 2790, "historicoValores": [{"data": "2026-10-15", "valorCentavos": 2790}], "frequencia": "mensal", "proximaCobranca": "2026-11-15", "categoria": "Assinaturas & Serviços Digitais", "dono": "juliana", "status": "ativa", "observacoes": "Conta principal da Ju", "transacoesVinculadasIds": [] }
+  ],
+  "auditoria": [],
+  "idsIgnoradosRegra": [],
+  "chavesAssinaturasIgnoradas": [],
+  "decisoesAlbert": []
+}

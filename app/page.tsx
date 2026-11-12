@@ -223,7 +223,16 @@ export default function Home() {
     novasChavesAssIgnoradas = chavesAssinaturasIgnoradas,
     novasDecisoesAlbert = decisoesAlbert
   ) {
-    const transacoesConciliadas = executarConciliacaoAutomatica(novasTransacoes);
+// Preserva transações que tiveram a conciliação desfeita manualmente
+    const idsDesfeitas = new Set(
+      novasTransacoes.filter(t => t.statusConciliacao === 'revisao_necessaria').map(t => t.id)
+    );
+    const conciliadasAuto = executarConciliacaoAutomatica(
+      novasTransacoes.filter(t => !idsDesfeitas.has(t.id))
+    );
+    const transacoesConciliadas = novasTransacoes.map(
+      t => idsDesfeitas.has(t.id) ? t : (conciliadasAuto.find(c => c.id === t.id) || t)
+    );    
     const investimentosSincronizados = sincronizarInvestimentosComTransacoes(
       transacoesConciliadas,
       novasMovimentacoesInv,
@@ -479,7 +488,7 @@ export default function Home() {
   function desfazerConciliacao(t: Transacao) {
     const parId = t.parConciliadoId;
     const atualizadas: Transacao[] = transacoes.map((item): Transacao => {
-      if (item.id === t.id || item.id === parId) {
+      if (item.id === t.id || item.id === parId || item.parConciliadoId === t.id) {
         return {
           ...item,
           parConciliadoId: undefined,
@@ -1566,14 +1575,18 @@ export default function Home() {
                       <p className="text-sm text-slate-500 text-center py-6">Nenhuma transferência do casal encontrada nos lançamentos.</p>
                     ) : (
                       transacoes.filter(t => t.natureza === 'transferencia_casal').map(t => (
-                        <div key={t.id} className={`bg-slate-950 border p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-3 text-xs transition-all ${t.statusConciliacao === 'aguardando_correspondencia' ? 'border-amber-500/30' : 'border-slate-800'}`}>
+                        <div key={t.id} className={`bg-slate-950 border p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-3 text-xs transition-all ${t.statusConciliacao === 'confirmada' ? 'border-slate-800' : 'border-amber-500/30'}`}>
                           <div>
-                            <div className="flex items-center gap-2 mb-1.5">
+                            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                               <span className="font-bold text-sm text-white">{t.descricao}</span>
-                              {t.statusConciliacao === 'aguardando_correspondencia' ? (
-                                <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">Aguardando Par</span>
-                              ) : (
+                              {t.statusConciliacao === 'confirmada' && (
                                 <span className="bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">🔗 Conciliada</span>
+                              )}
+                              {t.statusConciliacao === 'aguardando_correspondencia' && (
+                                <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">Aguardando Par</span>
+                              )}
+                              {t.statusConciliacao === 'revisao_necessaria' && (
+                                <span className="bg-rose-500/10 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">Vínculo Desfeito</span>
                               )}
                             </div>
                             <p className="text-slate-400 flex items-center gap-1.5 flex-wrap">
@@ -1582,8 +1595,9 @@ export default function Home() {
                               <span className="bg-slate-800 px-1.5 py-0.5 rounded text-[10px] text-slate-300">{t.banco}</span>
                             </p>
                           </div>
-                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
-                            <span className="font-bold text-blue-400 text-sm text-left sm:text-right">↔ {formatarBRL(t.valorCentavos)}</span>
+                          <div className="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
+                            <span className="font-bold text-blue-400 text-sm mr-2">↔ {formatarBRL(t.valorCentavos)}</span>
+                            
                             {t.statusConciliacao === 'aguardando_correspondencia' && (
                               <button 
                                 onClick={() => setModalConfirmacao({
@@ -1598,11 +1612,39 @@ export default function Home() {
                                 Buscar Recebimento
                               </button>
                             )}
+
+                            {t.statusConciliacao === 'revisao_necessaria' && (
+                              <button
+                                onClick={() => {
+                                  const reativadas: Transacao[] = transacoes.map(item =>
+                                    item.statusConciliacao === 'revisao_necessaria' && item.valorCentavos === t.valorCentavos
+                                      ? { ...item, statusConciliacao: 'aguardando_correspondencia', motivoConciliacao: undefined }
+                                      : item
+                                  );
+                                  persistirSistema(reativadas, lotes, categoriasInv, movimentacoesInv, regraInvCasal, idsIgnoradosRegra, registrarLog('Conciliação', `Reconciliado par de ${t.descricao}`));
+                                }}
+                                className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-3 py-2 rounded-lg transition-colors border border-emerald-500/20 font-medium"
+                              >
+                                🔗 Reconciliar
+                              </button>
+                            )}
+
                             {t.statusConciliacao === 'confirmada' && (
-                              <button onClick={() => desfazerConciliacao(t)} className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3 py-2 rounded-lg transition-colors border border-rose-500/20 font-medium">
+                              <button
+                                onClick={() => desfazerConciliacao(t)}
+                                className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3 py-2 rounded-lg transition-colors border border-rose-500/20 font-medium"
+                              >
                                 Desfazer
                               </button>
                             )}
+
+                            <button
+                              onClick={() => excluirTransacaoUnica(t)}
+                              className="text-slate-500 hover:text-rose-400 p-2 bg-slate-900 rounded-lg border border-slate-800 transition-colors"
+                              title="Excluir transação"
+                            >
+                              <Trash2 size={15} />
+                            </button>
                           </div>
                         </div>
                       ))
